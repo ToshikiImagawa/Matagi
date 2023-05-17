@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Matagi
+namespace Matagi.Core
 {
-    internal static class FinderUtil
+    public static class FinderUtil
     {
-        internal static TComponent GetComponent<TComponent>(
+        public static TComponent GetComponent<TComponent>(
             GameObject findRoot,
             string path,
             bool includeInactive,

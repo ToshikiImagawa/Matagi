@@ -2,6 +2,7 @@
 // Copyright (c) 2023 COMCREATE. All rights reserved.
 
 using System.Collections.Generic;
+using Matagi.Core;
 using UnityEngine;
 
 namespace Matagi.Simple

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Matagi.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -59,10 +60,10 @@ namespace Matagi.Simple
             }
             else
             {
-                LocalComponentCache localComponentCache = null;
+                SimpleLocalComponentCache localComponentCache = null;
                 foreach (var root in obj.scene.GetRootGameObjects())
                 {
-                    localComponentCache = root.GetComponent<LocalComponentCache>();
+                    localComponentCache = root.GetComponent<SimpleLocalComponentCache>();
                     if (localComponentCache != null) break;
                 }
 
@@ -95,7 +96,7 @@ namespace Matagi.Simple
             if (obj == null) return null;
             if (Application.isPlaying)
             {
-                LocalComponentCache localComponentCache = null;
+                SimpleLocalComponentCache localComponentCache = null;
                 var rootScene = obj.scene;
 
                 if (!rootScene.IsValid() || !rootScene.isLoaded)
@@ -107,7 +108,7 @@ namespace Matagi.Simple
                     );
                 foreach (var root in rootScene.GetRootGameObjects())
                 {
-                    localComponentCache = root.GetComponent<LocalComponentCache>();
+                    localComponentCache = root.GetComponent<SimpleLocalComponentCache>();
                     if (localComponentCache != null) break;
                 }
 
