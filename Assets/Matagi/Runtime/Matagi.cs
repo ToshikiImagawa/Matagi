@@ -27,11 +27,21 @@ namespace Matagi
         /// <param name="loaded"></param>
         /// <param name="includeInactive"></param>
         /// <param name="staticCache"></param>
-        public static void GetComponentFromGameObject<T>(this Component com, string remoteGameObjectName,
-            Action<T> loaded, bool includeInactive = false, bool staticCache = false) where T : Component
+        public static void FindComponent<T>(
+            this Component com,
+            string remoteGameObjectName,
+            Action<T> loaded,
+            bool includeInactive = false,
+            bool staticCache = false
+        ) where T : Component
         {
-            var obj = com.gameObject;
-            GetComponentFromGameObject(obj, remoteGameObjectName, loaded, includeInactive);
+            FindComponent(
+                com.gameObject,
+                remoteGameObjectName,
+                loaded,
+                includeInactive,
+                staticCache
+            );
         }
 
         /// <summary>
@@ -46,12 +56,16 @@ namespace Matagi
         /// <param name="includeInactive"></param>
         /// <param name="staticCache"></param>
         /// <returns></returns>
-        public static T GetComponentFromGameObject<T>(this Component com, string remoteGameObjectName = null,
-            bool includeInactive = false, bool staticCache = false) where T : Component
+        public static T FindComponent<T>(
+            this Component com,
+            string remoteGameObjectName = null,
+            bool includeInactive = false,
+            bool staticCache = false
+        ) where T : Component
         {
             if (com == null) return null;
             var obj = com.gameObject;
-            return GetComponentFromGameObject<T>(obj, remoteGameObjectName, includeInactive, staticCache);
+            return FindComponent<T>(obj, remoteGameObjectName, includeInactive, staticCache);
         }
 
         /// <summary>
@@ -66,8 +80,13 @@ namespace Matagi
         /// <param name="loaded"></param>
         /// <param name="includeInactive"></param>
         /// <param name="staticCache"></param>
-        public static void GetComponentFromGameObject<T>(this GameObject obj, string remoteGameObjectName,
-            Action<T> loaded, bool includeInactive = false, bool staticCache = false) where T : Component
+        public static void FindComponent<T>(
+            this GameObject obj,
+            string remoteGameObjectName,
+            Action<T> loaded,
+            bool includeInactive = false,
+            bool staticCache = false
+        ) where T : Component
         {
             T component;
             if (staticCache || !Application.isPlaying)
@@ -102,8 +121,7 @@ namespace Matagi
             }
 
             // not found.
-            Debug.LogError(obj.name + " failed to found component:" + typeof(T) + " from gameObject:" +
-                           remoteGameObjectName);
+            Debug.LogError($"{obj.name} failed to found component:{typeof(T)} from gameObject:{remoteGameObjectName}");
         }
 
         /// <summary>
@@ -118,7 +136,7 @@ namespace Matagi
         /// <param name="includeInactive"></param>
         /// <param name="staticCache"></param>
         /// <returns></returns>
-        public static T GetComponentFromGameObject<T>(this GameObject obj, string remoteGameObjectName = null,
+        public static T FindComponent<T>(this GameObject obj, string remoteGameObjectName = null,
             bool includeInactive = false, bool staticCache = false) where T : Component
         {
             if (obj == null) return null;
@@ -181,7 +199,7 @@ namespace Matagi
         /// 検索もとGameObjectよりキャッシュクリア
         /// </summary>
         /// <param name="obj"></param>
-        public static void CacheClearFromParentObject(UnityEngine.Object obj)
+        public static void CacheClearFromParentObject(Object obj)
         {
             CacheClearFromParentInstanceId(obj.GetInstanceID().ToString());
         }
@@ -191,9 +209,12 @@ namespace Matagi
             return $"{findRoot.GetInstanceID()}_{path}_{typeof(TComponent)}";
         }
 
-        internal static TComponent GetComponent<TComponent>(GameObject findRoot, string path,
-            bool includeInactive, IDictionary<string, Component> cacheDict)
-            where TComponent : Component
+        internal static TComponent GetComponent<TComponent>(
+            GameObject findRoot,
+            string path,
+            bool includeInactive,
+            IDictionary<string, Component> cacheDict
+        ) where TComponent : Component
         {
             if (string.IsNullOrEmpty(path))
             {
