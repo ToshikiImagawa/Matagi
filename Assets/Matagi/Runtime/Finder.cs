@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace Matagi
 {
-    public static class Searcher
+    public static class Finder
     {
         private static readonly Dictionary<string, Component> CacheDict = new();
         private static readonly object CacheDictLock = new();
@@ -65,7 +65,12 @@ namespace Matagi
         {
             if (com == null) return null;
             var obj = com.gameObject;
-            return FindComponent<T>(obj, remoteGameObjectName, includeInactive, staticCache);
+            return FindComponent<T>(
+                obj,
+                remoteGameObjectName,
+                includeInactive,
+                staticCache
+            );
         }
 
         /// <summary>
@@ -93,7 +98,7 @@ namespace Matagi
             {
                 lock (CacheDictLock)
                 {
-                    component = GetComponent<T>(obj, remoteGameObjectName, includeInactive, CacheDict);
+                    component = FinderUtil.GetComponent<T>(obj, remoteGameObjectName, includeInactive, CacheDict);
                 }
             }
             else
@@ -136,8 +141,12 @@ namespace Matagi
         /// <param name="includeInactive"></param>
         /// <param name="staticCache"></param>
         /// <returns></returns>
-        public static T FindComponent<T>(this GameObject obj, string remoteGameObjectName = null,
-            bool includeInactive = false, bool staticCache = false) where T : Component
+        public static T FindComponent<T>(
+            this GameObject obj,
+            string remoteGameObjectName = null,
+            bool includeInactive = false,
+            bool staticCache = false
+        ) where T : Component
         {
             if (obj == null) return null;
             if (!staticCache && Application.isPlaying)
@@ -146,7 +155,7 @@ namespace Matagi
                 var rootScene = obj.scene;
 
                 if (!rootScene.IsValid() || !rootScene.isLoaded)
-                    return GetComponent<T>(obj, remoteGameObjectName, includeInactive,
+                    return FinderUtil.GetComponent<T>(obj, remoteGameObjectName, includeInactive,
                         new Dictionary<string, Component>());
                 foreach (var root in rootScene.GetRootGameObjects())
                 {
@@ -164,7 +173,7 @@ namespace Matagi
 
             lock (CacheDictLock)
             {
-                return GetComponent<T>(obj, remoteGameObjectName, includeInactive, CacheDict);
+                return FinderUtil.GetComponent<T>(obj, remoteGameObjectName, includeInactive, CacheDict);
             }
         }
 
@@ -202,81 +211,6 @@ namespace Matagi
         public static void CacheClearFromParentObject(Object obj)
         {
             CacheClearFromParentInstanceId(obj.GetInstanceID().ToString());
-        }
-
-        private static string GetKey<TComponent>(Object findRoot, string path) where TComponent : Component
-        {
-            return $"{findRoot.GetInstanceID()}_{path}_{typeof(TComponent)}";
-        }
-
-        internal static TComponent GetComponent<TComponent>(
-            GameObject findRoot,
-            string path,
-            bool includeInactive,
-            IDictionary<string, Component> cacheDict
-        ) where TComponent : Component
-        {
-            if (string.IsNullOrEmpty(path))
-            {
-                path = findRoot.name;
-            }
-
-            var key = GetKey<TComponent>(findRoot, path);
-            if (cacheDict.ContainsKey(key))
-            {
-                var component = cacheDict[key] as TComponent;
-                if (component != null) return component;
-                cacheDict.Remove(key);
-            }
-
-            if (findRoot.name == path)
-            {
-                var component = findRoot.GetComponent<TComponent>();
-                if (component != null)
-                {
-                    cacheDict[GetKey<TComponent>(findRoot, path)] = component;
-
-                    return component;
-                }
-            }
-
-            var components = findRoot.GetComponentsInChildren<TComponent>(includeInactive);
-            var searchKeys = path.Split('/');
-
-            TComponent hitComponent = null;
-            foreach (var component in components)
-            {
-                var name = component.gameObject.name;
-                var parent = component.transform.parent;
-                var hit = true;
-                for (var i = searchKeys.Length - 1; i >= 0; i--)
-                {
-                    var searchKey = searchKeys[i];
-                    if (name != searchKey)
-                    {
-                        hit = false;
-                        break;
-                    }
-
-                    if (parent != null)
-                    {
-                        name = parent.name;
-                        parent = parent.parent;
-                    }
-                    else
-                    {
-                        name = string.Empty;
-                    }
-                }
-
-                if (!hit) continue;
-                hitComponent = component;
-                break;
-            }
-
-            if (hitComponent == null) return null;
-            cacheDict[GetKey<TComponent>(findRoot, path)] = hitComponent;
-            return hitComponent;
         }
     }
 }

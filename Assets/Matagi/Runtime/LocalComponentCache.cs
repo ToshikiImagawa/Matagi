@@ -31,7 +31,7 @@ namespace Matagi
 #if UNITY_EDITOR
                 _updateCacheDict = true;
 #endif
-                return Searcher.GetComponent<TComponent>(findRoot, path, includeInactive, _cacheDict);
+                return FinderUtil.GetComponent<TComponent>(findRoot, path, includeInactive, _cacheDict);
             }
         }
 
