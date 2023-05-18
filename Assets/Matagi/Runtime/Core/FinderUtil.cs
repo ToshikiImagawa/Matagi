@@ -9,6 +9,11 @@ namespace Matagi.Core
 {
     public static class FinderUtil
     {
+        public static GameObject Root(this GameObject obj)
+        {
+            return obj.transform.root.gameObject;
+        }
+
         public static TComponent GetComponent<TComponent>(
             GameObject findRoot,
             string path,

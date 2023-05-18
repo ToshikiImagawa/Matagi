@@ -17,107 +17,96 @@ namespace Matagi
         private static readonly object CacheDictLock = new();
 
         /// <summary>
-        /// 現在のGameObjectの子からNAMEというGOを探し、
-        /// そのGOの持っているT型のコンポーネントを取り出す
-        /// 
-        /// キャッシュが効く。
+        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
+        /// そのGameObjectの持っているT型のコンポーネントを取得します
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="com"></param>
-        /// <param name="remoteGameObjectName"></param>
+        /// <param name="path"></param>
         /// <param name="loaded"></param>
         /// <param name="includeInactive"></param>
-        /// <param name="staticCache"></param>
+        /// <param name="cacheType"></param>
         public static void FindComponent<T>(
             this Component com,
-            string remoteGameObjectName,
+            string path,
             Action<T> loaded,
             bool includeInactive = false,
-            bool staticCache = false
+            CacheType cacheType = CacheType.Local
         ) where T : Component
         {
             FindComponent(
                 com.gameObject,
-                remoteGameObjectName,
+                path,
                 loaded,
                 includeInactive,
-                staticCache
+                cacheType
             );
         }
 
         /// <summary>
-        /// 現在のGameObjectの子からNAMEというGOを探し、
-        /// そのGOの持っているT型のコンポーネントを取り出す
-        /// 
-        /// キャッシュが効く。
+        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
+        /// そのGameObjectの持っているT型のコンポーネントを取得します
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="com"></param>
-        /// <param name="remoteGameObjectName"></param>
+        /// <param name="path"></param>
         /// <param name="includeInactive"></param>
-        /// <param name="staticCache"></param>
+        /// <param name="cacheType"></param>
         /// <returns></returns>
         public static T FindComponent<T>(
             this Component com,
-            string remoteGameObjectName = null,
+            string path = null,
             bool includeInactive = false,
-            bool staticCache = false
+            CacheType cacheType = CacheType.Local
         ) where T : Component
         {
             if (com == null) return null;
             var obj = com.gameObject;
             return FindComponent<T>(
                 obj,
-                remoteGameObjectName,
+                path,
                 includeInactive,
-                staticCache
+                cacheType
             );
         }
 
         /// <summary>
-        /// 現在のGameObjectの子からNAMEというGOを探し、
-        /// そのGOの持っているT型のコンポーネントを取り出す
-        ///
-        /// キャッシュが効く。
+        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
+        /// そのGameObjectの持っているT型のコンポーネントを取得します
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
-        /// <param name="remoteGameObjectName"></param>
+        /// <param name="path"></param>
         /// <param name="loaded"></param>
         /// <param name="includeInactive"></param>
-        /// <param name="staticCache"></param>
+        /// <param name="cacheType"></param>
         public static void FindComponent<T>(
             this GameObject obj,
-            string remoteGameObjectName,
+            string path,
             Action<T> loaded,
             bool includeInactive = false,
-            bool staticCache = false
+            CacheType cacheType = CacheType.Local
         ) where T : Component
         {
             T component;
-            if (staticCache || !Application.isPlaying)
+            if (cacheType == CacheType.Static || !Application.isPlaying)
             {
                 lock (CacheDictLock)
                 {
-                    component = FinderUtil.GetComponent<T>(obj, remoteGameObjectName, includeInactive, CacheDict);
+                    component = FinderUtil.GetComponent<T>(obj, path, includeInactive, CacheDict);
                 }
             }
             else
             {
-                LocalComponentCache localComponentCache = null;
-                foreach (var root in obj.scene.GetRootGameObjects())
-                {
-                    localComponentCache = root.GetComponent<LocalComponentCache>();
-                    if (localComponentCache != null) break;
-                }
+                var localComponentCache = cacheType == CacheType.Local
+                    ? obj.GetComponent<LocalComponentCache>() ??
+                      obj.GetComponentInParent<LocalComponentCache>() ??
+                      obj.Root().AddComponent<LocalComponentCache>()
+                    : obj.scene.GetRootGameObjects()
+                        .Select(root => root.GetComponent<LocalComponentCache>())
+                        .FirstOrDefault(cache => cache != null) ?? CreateLocalComponentCache(obj);
 
-                if (localComponentCache == null)
-                {
-                    localComponentCache = new GameObject("[LocalComponentCache]").AddComponent<LocalComponentCache>();
-                    SceneManager.MoveGameObjectToScene(localComponentCache.gameObject, obj.scene);
-                }
-
-                component = localComponentCache.GetComponent<T>(obj, remoteGameObjectName, includeInactive);
+                component = localComponentCache.GetComponent<T>(obj, path, includeInactive);
             }
 
             if (component != null)
@@ -127,54 +116,55 @@ namespace Matagi
             }
 
             // not found.
-            Debug.LogError($"{obj.name} failed to found component:{typeof(T)} from gameObject:{remoteGameObjectName}");
+            Debug.LogError($"{obj.name} failed to found component:{typeof(T)} from gameObject:{path}");
         }
 
         /// <summary>
-        /// 現在のGameObjectの子からNAMEというGOを探し、
-        /// そのGOの持っているT型のコンポーネントを取り出す
-        ///
-        /// キャッシュが効く。
+        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
+        /// そのGameObjectの持っているT型のコンポーネントを取得します
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
-        /// <param name="remoteGameObjectName"></param>
+        /// <param name="path"></param>
         /// <param name="includeInactive"></param>
-        /// <param name="staticCache"></param>
+        /// <param name="cacheType"></param>
         /// <returns></returns>
         public static T FindComponent<T>(
             this GameObject obj,
-            string remoteGameObjectName = null,
+            string path = null,
             bool includeInactive = false,
-            bool staticCache = false
+            CacheType cacheType = CacheType.Local
         ) where T : Component
         {
             if (obj == null) return null;
-            if (!staticCache && Application.isPlaying)
+            if (cacheType != CacheType.Static && Application.isPlaying)
             {
-                LocalComponentCache localComponentCache = null;
                 var rootScene = obj.scene;
 
                 if (!rootScene.IsValid() || !rootScene.isLoaded)
-                    return FinderUtil.GetComponent<T>(obj, remoteGameObjectName, includeInactive,
-                        new Dictionary<string, Component>());
-                foreach (var root in rootScene.GetRootGameObjects())
                 {
-                    localComponentCache = root.GetComponent<LocalComponentCache>();
-                    if (localComponentCache != null) break;
+                    return FinderUtil.GetComponent<T>(
+                        obj,
+                        path,
+                        includeInactive,
+                        new Dictionary<string, Component>()
+                    );
                 }
 
-                if (localComponentCache != null)
-                    return localComponentCache.GetComponent<T>(obj, remoteGameObjectName, includeInactive);
-                localComponentCache = new GameObject("[LocalComponentCache]").AddComponent<LocalComponentCache>();
-                SceneManager.MoveGameObjectToScene(localComponentCache.gameObject, obj.scene);
+                var localComponentCache = cacheType == CacheType.Local
+                    ? obj.GetComponent<LocalComponentCache>() ??
+                      obj.GetComponentInParent<LocalComponentCache>() ??
+                      obj.Root().AddComponent<LocalComponentCache>()
+                    : obj.scene.GetRootGameObjects()
+                        .Select(root => root.GetComponent<LocalComponentCache>())
+                        .FirstOrDefault(cache => cache != null) ?? CreateLocalComponentCache(obj);
 
-                return localComponentCache.GetComponent<T>(obj, remoteGameObjectName, includeInactive);
+                return localComponentCache.GetComponent<T>(obj, path, includeInactive);
             }
 
             lock (CacheDictLock)
             {
-                return FinderUtil.GetComponent<T>(obj, remoteGameObjectName, includeInactive, CacheDict);
+                return FinderUtil.GetComponent<T>(obj, path, includeInactive, CacheDict);
             }
         }
 
@@ -212,6 +202,31 @@ namespace Matagi
         public static void CacheClearFromParentObject(Object obj)
         {
             CacheClearFromParentInstanceId(obj.GetInstanceID().ToString());
+        }
+
+        public enum CacheType
+        {
+            /// <summary>
+            /// 検索対象のRootのGameObjectにキャッシュします
+            /// </summary>
+            Local,
+
+            /// <summary>
+            /// シーンで１つのGameObjectにキャッシュします
+            /// </summary>
+            Scene,
+
+            /// <summary>
+            /// Staticにキャッシュします
+            /// </summary>
+            Static
+        }
+
+        private static LocalComponentCache CreateLocalComponentCache(GameObject obj)
+        {
+            var localComponentCache = new GameObject("[LocalComponentCache]").AddComponent<LocalComponentCache>();
+            SceneManager.MoveGameObjectToScene(localComponentCache.gameObject, obj.scene);
+            return localComponentCache;
         }
     }
 }
