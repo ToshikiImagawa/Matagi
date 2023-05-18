@@ -14,10 +14,10 @@ namespace Matagi
 #if UNITY_EDITOR
         [HideInInspector] public bool visualize;
         public Color defaultColor = Color.yellow;
+        public Color selectedColor = Color.red;
         private bool _updateCacheDict;
         private static readonly Vector3 FromSize = Vector3.one * 20f;
         private const float ToRadius = 10f;
-        private static readonly Color SelectedColor = Color.red;
 #endif
 
         private readonly Dictionary<string, Component> _cacheDict = new();
@@ -25,8 +25,8 @@ namespace Matagi
 
         TComponent IComponentCache.GetComponent<TComponent>(
             GameObject findRoot,
-            string path = null,
-            bool includeInactive = false
+            string path,
+            bool includeInactive
         )
         {
             lock (_cacheDictLock)
@@ -65,7 +65,7 @@ namespace Matagi
             {
                 var obj = UnityEditor.EditorUtility.InstanceIDToObject(id);
                 if (obj == null) continue;
-                Gizmos.color = selectIds.Contains(id) ? SelectedColor : defaultColor;
+                Gizmos.color = selectIds.Contains(id) ? selectedColor : defaultColor;
                 var from = ((GameObject)obj).transform.position;
 
                 Gizmos.DrawWireCube(from, FromSize);
