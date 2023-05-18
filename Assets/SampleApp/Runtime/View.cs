@@ -9,8 +9,8 @@ namespace SampleApp
 {
     public class View : MonoBehaviour
     {
-        public Text Display => this.FindComponent<Text>(nameof(Display));
-        public InputField PathField => this.FindComponent<InputField>(nameof(PathField));
-        public Button RunButton => this.FindComponent<Button>(nameof(RunButton));
+        public Text Display => this.FindComponent<Text>(nameof(Display), cacheType: CacheType.Local);
+        public InputField PathField => this.FindComponent<InputField>(nameof(PathField), cacheType: CacheType.Local);
+        public Button RunButton => this.FindComponent<Button>(nameof(RunButton), cacheType: CacheType.Local);
     }
 }

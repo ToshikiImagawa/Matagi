@@ -87,9 +87,9 @@ namespace Matagi.Simple
             }
             else
             {
-                var localComponentCache = obj.GetComponent<SimpleLocalComponentCache>() ??
-                                          obj.GetComponentInParent<SimpleLocalComponentCache>()
-                                          ?? obj.Root().AddComponent<SimpleLocalComponentCache>();
+                IComponentCache localComponentCache = obj.GetComponent<SimpleLocalComponentCache>() ??
+                                                      obj.GetComponentInParent<SimpleLocalComponentCache>()
+                                                      ?? obj.Root().AddComponent<SimpleLocalComponentCache>();
 
                 component = localComponentCache.GetComponent<T>(obj, path, includeInactive);
             }
@@ -130,9 +130,9 @@ namespace Matagi.Simple
                 );
             }
 
-            var localComponentCache = obj.GetComponent<SimpleLocalComponentCache>() ??
-                                      obj.GetComponentInParent<SimpleLocalComponentCache>()
-                                      ?? obj.Root().AddComponent<SimpleLocalComponentCache>();
+            IComponentCache localComponentCache = obj.GetComponent<SimpleLocalComponentCache>() ??
+                                                  obj.GetComponentInParent<SimpleLocalComponentCache>()
+                                                  ?? obj.Root().AddComponent<SimpleLocalComponentCache>();
 
             return localComponentCache.GetComponent<T>(obj, path, includeInactive);
         }

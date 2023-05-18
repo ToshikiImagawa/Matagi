@@ -8,17 +8,16 @@ using UnityEngine;
 namespace Matagi.Simple
 {
     [DisallowMultipleComponent]
-    public class SimpleLocalComponentCache : MonoBehaviour
+    public class SimpleLocalComponentCache : MonoBehaviour, IComponentCache
     {
         private readonly Dictionary<string, Component> _cacheDict = new();
         private readonly object _cacheDictLock = new();
 
-        internal TComponent GetComponent<TComponent>(
+        TComponent IComponentCache.GetComponent<TComponent>(
             GameObject findRoot,
-            string path = null,
-            bool includeInactive = false
+            string path,
+            bool includeInactive
         )
-            where TComponent : Component
         {
             lock (_cacheDictLock)
             {

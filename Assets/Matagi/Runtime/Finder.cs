@@ -17,6 +17,11 @@ namespace Matagi
         private static readonly object CacheDictLock = new();
 
         /// <summary>
+        /// デフォルトのCacheType
+        /// </summary>
+        public static CacheType DefaultCacheType = CacheType.Local;
+
+        /// <summary>
         /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
         /// そのGameObjectの持っているT型のコンポーネントを取得します
         /// </summary>
@@ -31,7 +36,7 @@ namespace Matagi
             string path,
             Action<T> loaded,
             bool includeInactive = false,
-            CacheType cacheType = CacheType.Local
+            CacheType? cacheType = null
         ) where T : Component
         {
             FindComponent(
@@ -57,7 +62,7 @@ namespace Matagi
             this Component com,
             string path = null,
             bool includeInactive = false,
-            CacheType cacheType = CacheType.Local
+            CacheType? cacheType = null
         ) where T : Component
         {
             if (com == null) return null;
@@ -85,11 +90,13 @@ namespace Matagi
             string path,
             Action<T> loaded,
             bool includeInactive = false,
-            CacheType cacheType = CacheType.Local
+            CacheType? cacheType = null
         ) where T : Component
         {
+            if (obj == null) return;
+            var nonnullCacheType = cacheType ?? DefaultCacheType;
             T component;
-            if (cacheType == CacheType.Static || !Application.isPlaying)
+            if (nonnullCacheType == CacheType.Static || !Application.isPlaying)
             {
                 lock (CacheDictLock)
                 {
@@ -98,13 +105,13 @@ namespace Matagi
             }
             else
             {
-                var localComponentCache = cacheType == CacheType.Local
+                IComponentCache localComponentCache = nonnullCacheType == CacheType.Local
                     ? obj.GetComponent<LocalComponentCache>() ??
                       obj.GetComponentInParent<LocalComponentCache>() ??
                       obj.Root().AddComponent<LocalComponentCache>()
                     : obj.scene.GetRootGameObjects()
-                        .Select(root => root.GetComponent<LocalComponentCache>())
-                        .FirstOrDefault(cache => cache != null) ?? CreateLocalComponentCache(obj);
+                        .Select(root => root.GetComponent<SceneComponentCache>())
+                        .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj);
 
                 component = localComponentCache.GetComponent<T>(obj, path, includeInactive);
             }
@@ -133,11 +140,12 @@ namespace Matagi
             this GameObject obj,
             string path = null,
             bool includeInactive = false,
-            CacheType cacheType = CacheType.Local
+            CacheType? cacheType = null
         ) where T : Component
         {
             if (obj == null) return null;
-            if (cacheType != CacheType.Static && Application.isPlaying)
+            var nonnullCacheType = cacheType ?? DefaultCacheType;
+            if (nonnullCacheType != CacheType.Static && Application.isPlaying)
             {
                 var rootScene = obj.scene;
 
@@ -151,13 +159,13 @@ namespace Matagi
                     );
                 }
 
-                var localComponentCache = cacheType == CacheType.Local
+                IComponentCache localComponentCache = nonnullCacheType == CacheType.Local
                     ? obj.GetComponent<LocalComponentCache>() ??
                       obj.GetComponentInParent<LocalComponentCache>() ??
                       obj.Root().AddComponent<LocalComponentCache>()
                     : obj.scene.GetRootGameObjects()
-                        .Select(root => root.GetComponent<LocalComponentCache>())
-                        .FirstOrDefault(cache => cache != null) ?? CreateLocalComponentCache(obj);
+                        .Select(root => root.GetComponent<SceneComponentCache>())
+                        .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj);
 
                 return localComponentCache.GetComponent<T>(obj, path, includeInactive);
             }
@@ -204,27 +212,9 @@ namespace Matagi
             CacheClearFromParentInstanceId(obj.GetInstanceID().ToString());
         }
 
-        public enum CacheType
+        private static SceneComponentCache CreateSceneComponentCache(GameObject obj)
         {
-            /// <summary>
-            /// 検索対象のRootのGameObjectにキャッシュします
-            /// </summary>
-            Local,
-
-            /// <summary>
-            /// シーンで１つのGameObjectにキャッシュします
-            /// </summary>
-            Scene,
-
-            /// <summary>
-            /// Staticにキャッシュします
-            /// </summary>
-            Static
-        }
-
-        private static LocalComponentCache CreateLocalComponentCache(GameObject obj)
-        {
-            var localComponentCache = new GameObject("[LocalComponentCache]").AddComponent<LocalComponentCache>();
+            var localComponentCache = new GameObject("[SceneComponentCache]").AddComponent<SceneComponentCache>();
             SceneManager.MoveGameObjectToScene(localComponentCache.gameObject, obj.scene);
             return localComponentCache;
         }

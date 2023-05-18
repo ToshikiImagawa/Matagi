@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Matagi
 {
     [DisallowMultipleComponent]
-    public sealed class LocalComponentCache : MonoBehaviour
+    public class LocalComponentCache : MonoBehaviour, IComponentCache
     {
 #if UNITY_EDITOR
         [HideInInspector] public bool visualize;
@@ -23,12 +23,11 @@ namespace Matagi
         private readonly Dictionary<string, Component> _cacheDict = new();
         private readonly object _cacheDictLock = new();
 
-        internal TComponent GetComponent<TComponent>(
+        TComponent IComponentCache.GetComponent<TComponent>(
             GameObject findRoot,
             string path = null,
             bool includeInactive = false
         )
-            where TComponent : Component
         {
             lock (_cacheDictLock)
             {
@@ -62,9 +61,8 @@ namespace Matagi
 
             if (!visualize) return;
             var selectIds = UnityEditor.Selection.gameObjects.Select(go => go.GetInstanceID()).ToArray();
-            foreach (var keyValuePair in VisualizeCacheDictionary)
+            foreach (var (id, components) in VisualizeCacheDictionary)
             {
-                var id = keyValuePair.Key;
                 var obj = UnityEditor.EditorUtility.InstanceIDToObject(id);
                 if (obj == null) continue;
                 Gizmos.color = selectIds.Contains(id) ? SelectedColor : defaultColor;
@@ -72,7 +70,7 @@ namespace Matagi
 
                 Gizmos.DrawWireCube(from, FromSize);
 
-                foreach (var component in keyValuePair.Value)
+                foreach (var component in components)
                 {
                     if (component == null) continue;
                     var to = component.transform.position;

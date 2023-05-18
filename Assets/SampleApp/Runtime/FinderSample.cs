@@ -25,6 +25,7 @@ namespace SampleApp
         private void Run()
         {
             var path = view.PathField.text;
+            Finder.DefaultCacheType = CacheType.Scene;
             var target = findRootGameObject.FindComponent<Target>(path);
             view.Display.text = $"Call path: {path}, targetId = {target.GetId()}";
         }
