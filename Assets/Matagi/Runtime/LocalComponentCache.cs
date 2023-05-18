@@ -76,9 +76,12 @@ namespace Matagi
                     var direction = to - from;
                     var arrowLength = direction.magnitude / 10f;
                     Gizmos.DrawRay(from, direction);
-                    var right = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 + 20f, 0) *
+                    var lookRotation = direction == Vector3.zero
+                        ? Quaternion.identity
+                        : Quaternion.LookRotation(direction);
+                    var right = lookRotation * Quaternion.Euler(0, 180 + 20f, 0) *
                                 new Vector3(0, 0, 1);
-                    var left = Quaternion.LookRotation(direction) * Quaternion.Euler(0, 180 - 20f, 0) *
+                    var left = lookRotation * Quaternion.Euler(0, 180 - 20f, 0) *
                                new Vector3(0, 0, 1);
                     Gizmos.DrawRay(to, right * arrowLength);
                     Gizmos.DrawRay(to, left * arrowLength);
