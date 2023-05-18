@@ -16,5 +16,8 @@ namespace SampleApp
 
         public Button CreateInstanceButton =>
             this.FindComponent<Button>(nameof(CreateInstanceButton), cacheType: CacheType.Local);
+
+        public Button MoveSceneObjectButton =>
+            this.FindComponent<Button>(nameof(MoveSceneObjectButton), cacheType: CacheType.Local);
     }
 }
