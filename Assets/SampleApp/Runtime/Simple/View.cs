@@ -1,11 +1,11 @@
 // Matagi C# reference source
 // Copyright (c) 2023 COMCREATE. All rights reserved.
 
-using Matagi;
+using Matagi.Simple;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SampleApp
+namespace SampleApp.Simple
 {
     public class View : MonoBehaviour
     {
