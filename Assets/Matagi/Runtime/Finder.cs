@@ -215,7 +215,11 @@ namespace Matagi
         private static SceneComponentCache CreateSceneComponentCache(GameObject obj)
         {
             var localComponentCache = new GameObject("[SceneComponentCache]").AddComponent<SceneComponentCache>();
-            SceneManager.MoveGameObjectToScene(localComponentCache.gameObject, obj.scene);
+            if (localComponentCache.gameObject.scene != obj.scene)
+            {
+                SceneManager.MoveGameObjectToScene(localComponentCache.gameObject, obj.scene);
+            }
+
             return localComponentCache;
         }
     }

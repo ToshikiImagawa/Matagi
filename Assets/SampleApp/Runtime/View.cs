@@ -12,5 +12,9 @@ namespace SampleApp
         public Text Display => this.FindComponent<Text>(nameof(Display), cacheType: CacheType.Local);
         public InputField PathField => this.FindComponent<InputField>(nameof(PathField), cacheType: CacheType.Local);
         public Button RunButton => this.FindComponent<Button>(nameof(RunButton), cacheType: CacheType.Local);
+        public Button AddSceneButton => this.FindComponent<Button>(nameof(AddSceneButton), cacheType: CacheType.Local);
+
+        public Button CreateInstanceButton =>
+            this.FindComponent<Button>(nameof(CreateInstanceButton), cacheType: CacheType.Local);
     }
 }
