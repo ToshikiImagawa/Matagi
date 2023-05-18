@@ -23,8 +23,11 @@ namespace Matagi
         private readonly Dictionary<string, Component> _cacheDict = new();
         private readonly object _cacheDictLock = new();
 
-        public TComponent GetComponent<TComponent>(GameObject findRoot, string path = null,
-            bool includeInactive = false)
+        internal TComponent GetComponent<TComponent>(
+            GameObject findRoot,
+            string path = null,
+            bool includeInactive = false
+        )
             where TComponent : Component
         {
             lock (_cacheDictLock)

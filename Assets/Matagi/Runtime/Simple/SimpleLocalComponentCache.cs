@@ -13,7 +13,7 @@ namespace Matagi.Simple
         private readonly Dictionary<string, Component> _cacheDict = new();
         private readonly object _cacheDictLock = new();
 
-        public TComponent GetComponent<TComponent>(
+        internal TComponent GetComponent<TComponent>(
             GameObject findRoot,
             string path = null,
             bool includeInactive = false
