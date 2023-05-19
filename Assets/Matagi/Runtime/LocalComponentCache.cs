@@ -18,7 +18,7 @@ namespace Matagi
         private bool _updateCacheDict;
         private static readonly Vector3 FromSize = Vector3.one * 20f;
         private const float ToRadius = 10f;
-        private const float MaxArrowLength = 25f;
+        private const float MaxArrowLength = 15f;
 #endif
 
         private readonly Dictionary<string, Component> _cacheDict = new();
@@ -76,11 +76,15 @@ namespace Matagi
                     if (component == null) continue;
                     var to = component.transform.position;
                     var direction = to - from;
-                    var arrowLength = Mathf.Min(direction.magnitude / 10f, MaxArrowLength);
+                    if (direction == Vector3.zero)
+                    {
+                        Gizmos.DrawWireSphere(to, ToRadius);
+                        continue;
+                    }
+
                     Gizmos.DrawRay(from, direction);
-                    var lookRotation = direction == Vector3.zero
-                        ? Quaternion.identity
-                        : Quaternion.LookRotation(direction);
+                    var arrowLength = Mathf.Min(direction.magnitude / 10f, MaxArrowLength);
+                    var lookRotation = Quaternion.LookRotation(direction);
                     var right = lookRotation * Quaternion.Euler(0, 180 + 20f, 0) *
                                 new Vector3(0, 0, 1);
                     var left = lookRotation * Quaternion.Euler(0, 180 - 20f, 0) *

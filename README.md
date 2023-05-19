@@ -60,3 +60,16 @@ When choosing Local or Scene cache support, the following components exist in th
 - SceneComponentCache
 
 By pressing the Visualize button, the relationship between the Finder and the Find target is displayed as arrows in the Scene View.
+
+![imgur](https://i.imgur.com/rnwuDhS.png)
+![imgur](https://i.imgur.com/JNwfwo0.png)
+
+# Simple lightweight version
+
+There is a lightweight version with only Local cache type and no cache visualization.
+
+```
+using Matagi.Simple;
+```
+
+The usage is as simple as using 'Matagi.Simple'.
