@@ -18,6 +18,7 @@ namespace Matagi
         private bool _updateCacheDict;
         private static readonly Vector3 FromSize = Vector3.one * 20f;
         private const float ToRadius = 10f;
+        private const float MaxArrowLength = 25f;
 #endif
 
         private readonly Dictionary<string, Component> _cacheDict = new();
@@ -75,7 +76,7 @@ namespace Matagi
                     if (component == null) continue;
                     var to = component.transform.position;
                     var direction = to - from;
-                    var arrowLength = direction.magnitude / 10f;
+                    var arrowLength = Mathf.Min(direction.magnitude / 10f, MaxArrowLength);
                     Gizmos.DrawRay(from, direction);
                     var lookRotation = direction == Vector3.zero
                         ? Quaternion.identity
