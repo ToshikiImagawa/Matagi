@@ -40,7 +40,7 @@ namespace SampleApp
         {
             var path = view.PathField.text;
             var target = findRootGameObject.FindComponent<Target>(path);
-            view.Display.text = $"Call path: {path}, targetId = {target.GetId()}";
+            view.Display.text = target != null ? $"Call path: {path}, targetId = {target.GetId()}" : $"Call path: {path}, Not found.";
         }
 
         private void AddScene()

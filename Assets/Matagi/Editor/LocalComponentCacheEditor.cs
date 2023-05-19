@@ -17,6 +17,7 @@ namespace Matagi.Editor
 
             if (r == null) return;
             r.defaultColor = EditorGUILayout.ColorField("Visualize color", r.defaultColor);
+            r.selectedColor = EditorGUILayout.ColorField("Visualize selected color", r.selectedColor);
             r.visualize = GUILayout.Toggle(r.visualize, "Visualize", EditorStyles.miniButton);
             EditorGUILayout.Space();
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
@@ -26,10 +27,12 @@ namespace Matagi.Editor
                 {
                     var id = keyValuePair.Key;
                     var obj = EditorUtility.InstanceIDToObject(id);
+                    EditorGUILayout.LabelField("Finder");
                     EditorGUILayout.ObjectField(obj, obj.GetType(), allowSceneObjects: false);
                     EditorGUI.indentLevel++;
                     EditorGUILayout.BeginVertical();
                     {
+                        EditorGUILayout.LabelField("Find target");
                         foreach (var component in keyValuePair.Value)
                         {
                             EditorGUILayout.ObjectField(component.gameObject, component.gameObject.GetType(),
