@@ -59,3 +59,4 @@ When choosing Local or Scene cache support, the following components exist in th
 - LocalComponentCache
 - SceneComponentCache
 
+By pressing the Visualize button, the relationship between the Finder and the Find target is displayed as arrows in the Scene View.
