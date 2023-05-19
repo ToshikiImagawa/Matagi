@@ -1,3 +1,6 @@
+[![license](https://img.shields.io/github/license/ToshikiImagawa/Matagi?style=flat-square)](https://github.com/ToshikiImagawa/Matagi/blob/master/LICENSE.md)
+[![release](https://img.shields.io/github/release/ToshikiImagawa/Matagi?style=flat-square)](https://github.com/ToshikiImagawa/Matagi/releases)
+
 # Matagi
 This searches for a component within the descendants of a game object using a path.
 And on subsequent calls, cached values will be retrieved.
