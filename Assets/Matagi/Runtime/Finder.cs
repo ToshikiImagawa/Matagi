@@ -147,18 +147,6 @@ namespace Matagi
             var nonnullCacheType = cacheType ?? DefaultCacheType;
             if (nonnullCacheType != CacheType.Static && Application.isPlaying)
             {
-                var rootScene = obj.scene;
-
-                if (!rootScene.IsValid() || !rootScene.isLoaded)
-                {
-                    return FinderUtil.GetComponent<T>(
-                        obj,
-                        path,
-                        includeInactive,
-                        new Dictionary<string, Component>()
-                    );
-                }
-
                 IComponentCache localComponentCache = nonnullCacheType == CacheType.Local
                     ? obj.GetComponent<LocalComponentCache>() ??
                       obj.GetComponentInParent<LocalComponentCache>() ??

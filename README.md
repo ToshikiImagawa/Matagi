@@ -12,9 +12,7 @@ Inspired by [ArrowCell](https://github.com/sassembla/ArrowCell).
 1. Download com.comcreate-info.matagi-x.x.x.tgz [here](https://github.com/ToshikiImagawa/Matagi/releases).
 2. [Install a package from a local tarball file](https://docs.unity3d.com/2021.3/Documentation/Manual/upm-ui-tarball.html).
 
-# Quick start
-
-## In the case you want to retrieve components of the same type distinguished by the GameObject's name.
+# Introduction
 
 Get the component attached to a GameObject with the same name as the property from its own descendants.
 
@@ -34,3 +32,30 @@ public class View : MonoBehaviour
     public Button MoveSceneObjectButton => this.FindComponent<Button>(nameof(MoveSceneObjectButton));
 }
 ```
+
+# Types of Caches
+
+- Local
+- Scene
+- Static
+
+## Local
+It is the default cache type.
+The cache is disposed of based on the lifecycle of the GameObject at the root of the search.
+
+## Scene
+It is cached on a single GameObject that exists only once in the scene.
+This allows centralized management of the cache regardless of the search location.
+The cache is disposed of when the scene is unloaded.
+
+## Static
+It is cached in a static member variable.
+This allows the cache to be accessible even when the game object is moved to a different scene. 
+The cache is disposed of when any of the CacheClear-related methods are called.
+
+# ComponentCache
+When choosing Local or Scene cache support, the following components exist in the scene:
+
+- LocalComponentCache
+- SceneComponentCache
+
