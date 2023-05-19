@@ -12,14 +12,13 @@ namespace Matagi.Simple
     public static class SimpleFinder
     {
         /// <summary>
-        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
-        /// そのGameObjectの持っているT型のコンポーネントを取得します
+        /// It searches and retrieves the component from the descendants of the base component based on the path.
         /// </summary>
-        /// <param name="com"></param>
-        /// <param name="path"></param>
-        /// <param name="loaded"></param>
-        /// <param name="includeInactive"></param>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="com">The base component for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="loaded">The delegate that receives the component to be searched.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
         public static void FindComponent<T>(
             this Component com,
             string path,
@@ -36,14 +35,15 @@ namespace Matagi.Simple
         }
 
         /// <summary>
-        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
-        /// そのGameObjectの持っているT型のコンポーネントを取得します
+        /// It searches and retrieves the component from the descendants of the base component based on the path.
         /// </summary>
-        /// <param name="com"></param>
-        /// <param name="path"></param>
-        /// <param name="includeInactive"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="com">The base component for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        /// <returns>
+        ///   <para>A Component of the matching type, otherwise null if no Component is found.</para>
+        /// </returns>
         public static T FindComponent<T>(
             this Component com,
             string path = null,
@@ -60,14 +60,13 @@ namespace Matagi.Simple
         }
 
         /// <summary>
-        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
-        /// そのGameObjectの持っているT型のコンポーネントを取得します
+        /// It searches and retrieves the component from the descendants of the base gameObject based on the path.
         /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="path"></param>
-        /// <param name="loaded"></param>
-        /// <param name="includeInactive"></param>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="obj">The base gameObject for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="loaded">The delegate that receives the component to be searched.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
         public static void FindComponent<T>(
             this GameObject obj,
             string path,
@@ -105,14 +104,15 @@ namespace Matagi.Simple
         }
 
         /// <summary>
-        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
-        /// そのGameObjectの持っているT型のコンポーネントを取得します
+        /// It searches and retrieves the component from the descendants of the base gameObject based on the path.
         /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="path"></param>
-        /// <param name="includeInactive"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="obj">The base gameObject for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        /// <returns>
+        ///   <para>A Component of the matching type, otherwise null if no Component is found.</para>
+        /// </returns>
         public static T FindComponent<T>(
             this GameObject obj,
             string path = null,

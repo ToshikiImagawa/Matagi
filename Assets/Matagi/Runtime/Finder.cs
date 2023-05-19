@@ -17,20 +17,19 @@ namespace Matagi
         private static readonly object CacheDictLock = new();
 
         /// <summary>
-        /// デフォルトのCacheType
+        /// Default cache type
         /// </summary>
         public static CacheType DefaultCacheType = CacheType.Local;
 
         /// <summary>
-        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
-        /// そのGameObjectの持っているT型のコンポーネントを取得します
+        /// It searches and retrieves the component from the descendants of the base component based on the path.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="com"></param>
-        /// <param name="path"></param>
-        /// <param name="loaded"></param>
-        /// <param name="includeInactive"></param>
-        /// <param name="cacheType"></param>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="com">The base component for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="loaded">The delegate that receives the component to be searched.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        /// <param name="cacheType">cache type.</param>
         public static void FindComponent<T>(
             this Component com,
             string path,
@@ -49,15 +48,16 @@ namespace Matagi
         }
 
         /// <summary>
-        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
-        /// そのGameObjectの持っているT型のコンポーネントを取得します
+        /// It searches and retrieves the component from the descendants of the base component based on the path.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="com"></param>
-        /// <param name="path"></param>
-        /// <param name="includeInactive"></param>
-        /// <param name="cacheType"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="com">The base component for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        /// <param name="cacheType">cache type.</param>
+        /// <returns>
+        ///   <para>A Component of the matching type, otherwise null if no Component is found.</para>
+        /// </returns>
         public static T FindComponent<T>(
             this Component com,
             string path = null,
@@ -76,15 +76,14 @@ namespace Matagi
         }
 
         /// <summary>
-        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
-        /// そのGameObjectの持っているT型のコンポーネントを取得します
+        /// It searches and retrieves the component from the descendants of the base gameObject based on the path.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="path"></param>
-        /// <param name="loaded"></param>
-        /// <param name="includeInactive"></param>
-        /// <param name="cacheType"></param>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="obj">The base gameObject for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="loaded">The delegate that receives the component to be searched.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        /// <param name="cacheType">cache type.</param>
         public static void FindComponent<T>(
             this GameObject obj,
             string path,
@@ -127,15 +126,16 @@ namespace Matagi
         }
 
         /// <summary>
-        /// 現在のGameObjectの子孫からPATHというGameObjectを探し、
-        /// そのGameObjectの持っているT型のコンポーネントを取得します
+        /// It searches and retrieves the component from the descendants of the base gameObject based on the path.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="path"></param>
-        /// <param name="includeInactive"></param>
-        /// <param name="cacheType"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="obj">The base gameObject for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        /// <param name="cacheType">cache type.</param>
+        /// <returns>
+        ///   <para>A Component of the matching type, otherwise null if no Component is found.</para>
+        /// </returns>
         public static T FindComponent<T>(
             this GameObject obj,
             string path = null,
@@ -165,7 +165,7 @@ namespace Matagi
         }
 
         /// <summary>
-        /// 全キャッシュクリア
+        /// Clear all caches.
         /// </summary>
         public static void CacheClear()
         {
@@ -176,7 +176,7 @@ namespace Matagi
         }
 
         /// <summary>
-        /// 検索もとGameObjectのInstanceIdよりキャッシュクリア
+        /// Clear the cache based on the InstanceId of the base object.
         /// </summary>
         /// <param name="instanceId"></param>
         public static void CacheClearFromParentInstanceId(string instanceId)
@@ -192,7 +192,7 @@ namespace Matagi
         }
 
         /// <summary>
-        /// 検索もとGameObjectよりキャッシュクリア
+        /// Clear the cache from the base object.
         /// </summary>
         /// <param name="obj"></param>
         public static void CacheClearFromParentObject(Object obj)
