@@ -14,12 +14,67 @@ namespace Matagi
     public static class Finder
     {
         private static readonly Dictionary<string, Component> CacheDict = new();
+        private static readonly Dictionary<int, SceneComponentCache> SceneComponentCacheDict = new();
         private static readonly object CacheDictLock = new();
 
         /// <summary>
         /// Default cache type
         /// </summary>
-        public static CacheType DefaultCacheType = CacheType.Local;
+        public static CacheType DefaultCacheType = CacheType.Scene;
+
+        /// <summary>
+        /// It searches and retrieves the component from the descendants of the base component based on the path.
+        /// </summary>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="com">The base component for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="loaded">The delegate that receives the component to be searched.</param>
+        /// <param name="cache">The cache dictionary.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        public static void FindComponent<T>(
+            this Component com,
+            string path,
+            Action<T> loaded,
+            Dictionary<string, Component> cache,
+            bool includeInactive = false
+        ) where T : Component
+        {
+            FindComponent(
+                com.gameObject,
+                path,
+                loaded,
+                cache,
+                includeInactive
+            );
+        }
+
+        /// <summary>
+        /// It searches and retrieves the component from the descendants of the base gameObject based on the path.
+        /// </summary>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="com">The base component for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="cache">The cache dictionary.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        /// <returns>
+        ///   <para>A Component of the matching type, otherwise null if no Component is found.</para>
+        /// </returns>
+        public static T FindComponent<T>(
+            this Component com,
+            Dictionary<string, Component> cache,
+            string path = null,
+            bool includeInactive = false
+        ) where T : Component
+        {
+            if (com == null) return null;
+            var obj = com.gameObject;
+            return FindComponent<T>(
+                obj,
+                cache,
+                path,
+                includeInactive
+            );
+        }
 
         /// <summary>
         /// It searches and retrieves the component from the descendants of the base component based on the path.
@@ -82,6 +137,58 @@ namespace Matagi
         /// <param name="obj">The base gameObject for the search.</param>
         /// <param name="path">The name or path of the GameObject to be searched.</param>
         /// <param name="loaded">The delegate that receives the component to be searched.</param>
+        /// <param name="cache">The cache dictionary.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        public static void FindComponent<T>(
+            this GameObject obj,
+            string path,
+            Action<T> loaded,
+            Dictionary<string, Component> cache,
+            bool includeInactive = false
+        ) where T : Component
+        {
+            if (obj == null) return;
+            if (cache == null) return;
+            var component = FinderUtil.GetComponent<T>(obj, path, includeInactive, cache);
+            if (component != null)
+            {
+                loaded?.Invoke(component);
+                return;
+            }
+
+            // not found.
+            Debug.LogError($"{obj.name} failed to found component:{typeof(T)} from gameObject:{path}");
+        }
+
+        /// <summary>
+        /// It searches and retrieves the component from the descendants of the base gameObject based on the path.
+        /// </summary>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="obj">The base gameObject for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="cache">The cache dictionary.</param>
+        /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
+        /// <returns>
+        ///   <para>A Component of the matching type, otherwise null if no Component is found.</para>
+        /// </returns>
+        public static T FindComponent<T>(
+            this GameObject obj,
+            Dictionary<string, Component> cache,
+            string path = null,
+            bool includeInactive = false
+        ) where T : Component
+        {
+            if (obj == null || cache == null) return null;
+            return FinderUtil.GetComponent<T>(obj, path, includeInactive, cache);
+        }
+
+        /// <summary>
+        /// It searches and retrieves the component from the descendants of the base gameObject based on the path.
+        /// </summary>
+        /// <typeparam name="T">The type of component to search for.</typeparam>
+        /// <param name="obj">The base gameObject for the search.</param>
+        /// <param name="path">The name or path of the GameObject to be searched.</param>
+        /// <param name="loaded">The delegate that receives the component to be searched.</param>
         /// <param name="includeInactive">Whether to include inactive child GameObjects in the search.</param>
         /// <param name="cacheType">cache type.</param>
         public static void FindComponent<T>(
@@ -108,11 +215,13 @@ namespace Matagi
                     ? obj.GetComponent<LocalComponentCache>() ??
                       obj.GetComponentInParent<LocalComponentCache>() ??
                       obj.Root().AddComponent<LocalComponentCache>()
-                    : obj.scene.GetRootGameObjects()
-                        .Select(root => root.GetComponent<SceneComponentCache>())
-                        .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj);
+                    : SceneComponentCacheDict.TryGetValue(obj.scene.handle, out var sceneComponentCacheDict)
+                        ? sceneComponentCacheDict
+                        : SceneComponentCacheDict[obj.scene.handle] = obj.scene.GetRootGameObjects()
+                            .Select(root => root.GetComponent<SceneComponentCache>())
+                            .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj);
 
-                component = localComponentCache.GetComponent<T>(obj, path, includeInactive);
+                component = localComponentCache?.GetComponent<T>(obj, path, includeInactive);
             }
 
             if (component != null)
@@ -151,11 +260,13 @@ namespace Matagi
                     ? obj.GetComponent<LocalComponentCache>() ??
                       obj.GetComponentInParent<LocalComponentCache>() ??
                       obj.Root().AddComponent<LocalComponentCache>()
-                    : obj.scene.GetRootGameObjects()
-                        .Select(root => root.GetComponent<SceneComponentCache>())
-                        .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj);
+                    : SceneComponentCacheDict.TryGetValue(obj.scene.handle, out var sceneComponentCacheDict)
+                        ? sceneComponentCacheDict
+                        : SceneComponentCacheDict[obj.scene.handle] = obj.scene.GetRootGameObjects()
+                            .Select(root => root.GetComponent<SceneComponentCache>())
+                            .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj);
 
-                return localComponentCache.GetComponent<T>(obj, path, includeInactive);
+                return localComponentCache?.GetComponent<T>(obj, path, includeInactive);
             }
 
             lock (CacheDictLock)
@@ -173,6 +284,8 @@ namespace Matagi
             {
                 CacheDict.Clear();
             }
+
+            SceneComponentCacheDict.Clear();
         }
 
         /// <summary>
