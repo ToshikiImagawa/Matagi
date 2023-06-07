@@ -36,6 +36,13 @@ namespace Matagi.Simple
             {
                 _cacheDict?.Clear();
             }
+
+            RemoveComponentCache();
+        }
+
+        protected virtual void RemoveComponentCache()
+        {
+            SimpleFinder.RemoveLocalComponentCache(gameObject.GetInstanceID());
         }
     }
 }

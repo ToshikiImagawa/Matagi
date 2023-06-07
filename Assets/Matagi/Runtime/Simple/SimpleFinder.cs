@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Matagi.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,6 +12,9 @@ namespace Matagi.Simple
 {
     public static class SimpleFinder
     {
+        private static readonly Dictionary<int, SimpleLocalComponentCache> LocalComponentCacheDict = new();
+        private static readonly Dictionary<int, int> RootGameObjectLocalComponentCacheMap = new();
+
         /// <summary>
         /// It searches and retrieves the component from the descendants of the base component based on the path.
         /// </summary>
@@ -140,11 +144,8 @@ namespace Matagi.Simple
             }
             else
             {
-                IComponentCache localComponentCache = obj.GetComponent<SimpleLocalComponentCache>() ??
-                                                      obj.GetComponentInParent<SimpleLocalComponentCache>()
-                                                      ?? obj.Root().AddComponent<SimpleLocalComponentCache>();
-
-                component = localComponentCache?.GetComponent<T>(obj, path, includeInactive);
+                IComponentCache componentCache = GetOrCreateLocalComponentCache(obj);
+                component = componentCache?.GetComponent<T>(obj, path, includeInactive);
             }
 
             if (component != null)
@@ -184,11 +185,8 @@ namespace Matagi.Simple
                 );
             }
 
-            IComponentCache localComponentCache = obj.GetComponent<SimpleLocalComponentCache>() ??
-                                                  obj.GetComponentInParent<SimpleLocalComponentCache>()
-                                                  ?? obj.Root().AddComponent<SimpleLocalComponentCache>();
-
-            return localComponentCache?.GetComponent<T>(obj, path, includeInactive);
+            IComponentCache componentCache = GetOrCreateLocalComponentCache(obj);
+            return componentCache?.GetComponent<T>(obj, path, includeInactive);
         }
 
         /// <summary>
@@ -241,6 +239,51 @@ namespace Matagi.Simple
         {
             if (obj == null || cache == null) return null;
             return FinderUtil.GetComponent<T>(obj, path, includeInactive, cache);
+        }
+
+        public static void ClearComponentCache()
+        {
+            LocalComponentCacheDict.Clear();
+            RootGameObjectLocalComponentCacheMap.Clear();
+        }
+
+        internal static void RemoveLocalComponentCache(int instanceId)
+        {
+            LocalComponentCacheDict.Remove(instanceId);
+            var removeList = RootGameObjectLocalComponentCacheMap
+                .Where(keyValue => keyValue.Value == instanceId)
+                .Select(keyValue => keyValue.Key)
+                .ToArray();
+            foreach (var id in removeList)
+            {
+                RootGameObjectLocalComponentCacheMap.Remove(id);
+            }
+        }
+
+        private static SimpleLocalComponentCache GetOrCreateLocalComponentCache(GameObject obj)
+        {
+            var id = obj.GetInstanceID();
+            if (RootGameObjectLocalComponentCacheMap.TryGetValue(id, out var key))
+            {
+                return !LocalComponentCacheDict.TryGetValue(key, out var localComponentCache)
+                    ? LocalComponentCacheDict[key] = GetLocalComponentCache()
+                    : localComponentCache;
+            }
+            else
+            {
+                var localComponentCache = GetLocalComponentCache();
+                var componentCacheId = localComponentCache.gameObject.GetInstanceID();
+                LocalComponentCacheDict[componentCacheId] = localComponentCache;
+                RootGameObjectLocalComponentCacheMap[id] = componentCacheId;
+                return localComponentCache;
+            }
+
+            SimpleLocalComponentCache GetLocalComponentCache()
+            {
+                return obj.GetComponent<SimpleLocalComponentCache>() ??
+                       obj.GetComponentInParent<SimpleLocalComponentCache>() ??
+                       obj.Root().AddComponent<SimpleLocalComponentCache>();
+            }
         }
     }
 }

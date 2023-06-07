@@ -15,6 +15,8 @@ namespace Matagi
     {
         private static readonly Dictionary<string, Component> CacheDict = new();
         private static readonly Dictionary<int, SceneComponentCache> SceneComponentCacheDict = new();
+        private static readonly Dictionary<int, LocalComponentCache> LocalComponentCacheDict = new();
+        private static readonly Dictionary<int, int> RootGameObjectLocalComponentCacheMap = new();
         private static readonly object CacheDictLock = new();
 
         /// <summary>
@@ -211,17 +213,11 @@ namespace Matagi
             }
             else
             {
-                IComponentCache localComponentCache = nonnullCacheType == CacheType.Local
-                    ? obj.GetComponent<LocalComponentCache>() ??
-                      obj.GetComponentInParent<LocalComponentCache>() ??
-                      obj.Root().AddComponent<LocalComponentCache>()
-                    : SceneComponentCacheDict.TryGetValue(obj.scene.handle, out var sceneComponentCacheDict)
-                        ? sceneComponentCacheDict
-                        : SceneComponentCacheDict[obj.scene.handle] = obj.scene.GetRootGameObjects()
-                            .Select(root => root.GetComponent<SceneComponentCache>())
-                            .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj);
+                IComponentCache componentCache = nonnullCacheType == CacheType.Local
+                    ? GetOrCreateLocalComponentCache(obj)
+                    : GetOrCreateSceneComponentCache(obj);
 
-                component = localComponentCache?.GetComponent<T>(obj, path, includeInactive);
+                component = componentCache?.GetComponent<T>(obj, path, includeInactive);
             }
 
             if (component != null)
@@ -256,17 +252,11 @@ namespace Matagi
             var nonnullCacheType = cacheType ?? DefaultCacheType;
             if (nonnullCacheType != CacheType.Static && Application.isPlaying)
             {
-                IComponentCache localComponentCache = nonnullCacheType == CacheType.Local
-                    ? obj.GetComponent<LocalComponentCache>() ??
-                      obj.GetComponentInParent<LocalComponentCache>() ??
-                      obj.Root().AddComponent<LocalComponentCache>()
-                    : SceneComponentCacheDict.TryGetValue(obj.scene.handle, out var sceneComponentCacheDict)
-                        ? sceneComponentCacheDict
-                        : SceneComponentCacheDict[obj.scene.handle] = obj.scene.GetRootGameObjects()
-                            .Select(root => root.GetComponent<SceneComponentCache>())
-                            .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj);
+                IComponentCache componentCache = nonnullCacheType == CacheType.Local
+                    ? GetOrCreateLocalComponentCache(obj)
+                    : GetOrCreateSceneComponentCache(obj);
 
-                return localComponentCache?.GetComponent<T>(obj, path, includeInactive);
+                return componentCache?.GetComponent<T>(obj, path, includeInactive);
             }
 
             lock (CacheDictLock)
@@ -278,21 +268,19 @@ namespace Matagi
         /// <summary>
         /// Clear all caches.
         /// </summary>
-        public static void CacheClear()
+        public static void ClearCache()
         {
             lock (CacheDictLock)
             {
                 CacheDict.Clear();
             }
-
-            SceneComponentCacheDict.Clear();
         }
 
         /// <summary>
         /// Clear the cache based on the InstanceId of the base object.
         /// </summary>
         /// <param name="instanceId"></param>
-        public static void CacheClearFromParentInstanceId(string instanceId)
+        public static void ClearCacheFromParentInstanceId(string instanceId)
         {
             lock (CacheDictLock)
             {
@@ -308,9 +296,34 @@ namespace Matagi
         /// Clear the cache from the base object.
         /// </summary>
         /// <param name="obj"></param>
-        public static void CacheClearFromParentObject(Object obj)
+        public static void ClearCacheFromParentObject(Object obj)
         {
-            CacheClearFromParentInstanceId(obj.GetInstanceID().ToString());
+            ClearCacheFromParentInstanceId(obj.GetInstanceID().ToString());
+        }
+
+        public static void ClearComponentCache()
+        {
+            LocalComponentCacheDict.Clear();
+            SceneComponentCacheDict.Clear();
+            RootGameObjectLocalComponentCacheMap.Clear();
+        }
+
+        internal static void RemoveLocalComponentCache(int instanceId)
+        {
+            LocalComponentCacheDict.Remove(instanceId);
+            var removeList = RootGameObjectLocalComponentCacheMap
+                .Where(keyValue => keyValue.Value == instanceId)
+                .Select(keyValue => keyValue.Key)
+                .ToArray();
+            foreach (var id in removeList)
+            {
+                RootGameObjectLocalComponentCacheMap.Remove(id);
+            }
+        }
+
+        internal static void RemoveSceneComponentCache(int sceneHandle)
+        {
+            SceneComponentCacheDict.Remove(sceneHandle);
         }
 
         private static SceneComponentCache CreateSceneComponentCache(GameObject obj)
@@ -322,6 +335,42 @@ namespace Matagi
             }
 
             return localComponentCache;
+        }
+
+        private static LocalComponentCache GetOrCreateLocalComponentCache(GameObject obj)
+        {
+            var id = obj.GetInstanceID();
+            if (RootGameObjectLocalComponentCacheMap.TryGetValue(id, out var key))
+            {
+                return !LocalComponentCacheDict.TryGetValue(key, out var localComponentCache)
+                    ? LocalComponentCacheDict[key] = GetLocalComponentCache()
+                    : localComponentCache;
+            }
+            else
+            {
+                var localComponentCache = GetLocalComponentCache();
+                var componentCacheId = localComponentCache.gameObject.GetInstanceID();
+                LocalComponentCacheDict[componentCacheId] = localComponentCache;
+                RootGameObjectLocalComponentCacheMap[id] = componentCacheId;
+                return localComponentCache;
+            }
+
+            LocalComponentCache GetLocalComponentCache()
+            {
+                return obj.GetComponent<LocalComponentCache>() ??
+                       obj.GetComponentInParent<LocalComponentCache>() ??
+                       obj.Root().AddComponent<LocalComponentCache>();
+            }
+        }
+
+        private static SceneComponentCache GetOrCreateSceneComponentCache(GameObject obj)
+        {
+            var key = obj.scene.handle;
+            return !SceneComponentCacheDict.TryGetValue(key, out var sceneComponentCache)
+                ? SceneComponentCacheDict[key] = obj.scene.GetRootGameObjects()
+                    .Select(root => root.GetComponent<SceneComponentCache>())
+                    .FirstOrDefault(cache => cache != null) ?? CreateSceneComponentCache(obj)
+                : sceneComponentCache;
         }
     }
 }

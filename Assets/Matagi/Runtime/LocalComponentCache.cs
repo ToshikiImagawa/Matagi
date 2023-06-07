@@ -107,6 +107,13 @@ namespace Matagi
 #endif
                 _cacheDict?.Clear();
             }
+
+            RemoveComponentCache();
+        }
+
+        protected virtual void RemoveComponentCache()
+        {
+            Finder.RemoveLocalComponentCache(gameObject.GetInstanceID());
         }
     }
 }
