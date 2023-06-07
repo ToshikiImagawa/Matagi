@@ -301,7 +301,7 @@ namespace Matagi
             ClearCacheFromParentInstanceId(obj.GetInstanceID().ToString());
         }
 
-        public static void ClearComponentCache()
+        public static void ClearComponentCacheMap()
         {
             LocalComponentCacheDict.Clear();
             SceneComponentCacheDict.Clear();

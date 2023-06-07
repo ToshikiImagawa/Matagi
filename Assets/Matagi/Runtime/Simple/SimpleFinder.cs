@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Matagi.Core;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Matagi.Simple
 {
@@ -241,7 +240,7 @@ namespace Matagi.Simple
             return FinderUtil.GetComponent<T>(obj, path, includeInactive, cache);
         }
 
-        public static void ClearComponentCache()
+        public static void ClearComponentCacheMap()
         {
             LocalComponentCacheDict.Clear();
             RootGameObjectLocalComponentCacheMap.Clear();
